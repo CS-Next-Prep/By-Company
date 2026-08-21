@@ -34,3 +34,6 @@ npm-debug.log*
 
 # CLAUDE.md is an AI-assistant internal file — not needed in the public repo
 CLAUDE.md
+
+# Unused component (intro animation removed per design iteration)
+components/IntroAnimation.tsx
