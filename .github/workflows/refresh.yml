@@ -1,0 +1,110 @@
+name: Refresh data & deploy
+
+on:
+  # Run every Monday at 03:00 UTC (08:30 IST) — source repo updates weekly
+  schedule:
+    - cron: '0 3 * * 1'
+
+  # Allow a manual trigger from the GitHub Actions tab
+  workflow_dispatch:
+
+# Only one run at a time — prevents parallel ingest races
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Ingest → Build → Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: write   # needed to push the updated data files back
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Full history so we can push back cleanly
+          fetch-depth: 0
+
+      # ── 2. Set up Node ───────────────────────────────────────────────────
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: site/package-lock.json
+
+      # ── 3. Install dependencies ──────────────────────────────────────────
+      - name: Install site dependencies
+        run: npm ci
+        working-directory: site
+
+      # ── 4. Run the ingest pipeline ───────────────────────────────────────
+      # This pulls fresh CSVs from snehasishroy/leetcode-companywise-interview-questions,
+      # normalises the schema, dedupes, fetches missing logos, and writes:
+      #   site/public/data/companies.json         (4-5 MB, not committed)
+      #   site/public/data/companies-index.json   (57 KB,  committed)
+      #   site/public/data/questions-index.json   (2 MB,   not committed)
+      #   site/public/logos/*.png                 (committed, cached)
+      - name: Run ingest script
+        run: node scripts/ingest.mjs
+        working-directory: .
+        env:
+          # Optional: GitHub token for higher API rate limits when checking
+          # the source repo for new releases. Fine to omit — public repo.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 5. Detect whether data actually changed ──────────────────────────
+      # If nothing changed we skip the build & commit so the workflow stays
+      # quiet. The key indicator is companies-index.json (question counts
+      # change whenever the source repo is updated).
+      - name: Check for data changes
+        id: diff
+        run: |
+          git diff --quiet site/public/data/companies-index.json && \
+            echo "changed=false" >> $GITHUB_OUTPUT || \
+            echo "changed=true"  >> $GITHUB_OUTPUT
+
+      # ── 6. Build Next.js static export (only if data changed) ────────────
+      - name: Build site
+        if: steps.diff.outputs.changed == 'true'
+        run: npm run build
+        working-directory: site
+
+      # ── 7. Commit updated index + logos ──────────────────────────────────
+      # Only commits the small files (index + any new logos).
+      # companies.json stays out of git per .gitignore.
+      - name: Commit refreshed data
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "CS-Next Bot"
+          git config user.email "bot@cs-next.dev"
+          git add site/public/data/companies-index.json
+          git add site/public/logos/ || true
+          git commit -m "data: refresh company question counts $(date -u '+%Y-%m-%d')"
+          git push
+
+      # ── 8. Optional: trigger a deploy hook ───────────────────────────────
+      # If you host on Cloudflare Pages or Netlify with git-based deploys,
+      # the push in step 7 automatically kicks off a build there.
+      # If you use a deploy hook URL instead, uncomment and set the secret:
+      #
+      # - name: Trigger deploy hook
+      #   if: steps.diff.outputs.changed == 'true'
+      #   run: curl -X POST "${{ secrets.DEPLOY_HOOK_URL }}"
+
+      # ── 9. Summary ───────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## Data refresh — $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.diff.outputs.changed }}" = "true" ]; then
+            echo "✅ **New data detected** — site rebuilt and deployed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **No changes** in source data — build skipped." >> $GITHUB_STEP_SUMMARY
+          fi
