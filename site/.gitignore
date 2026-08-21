@@ -1,0 +1,36 @@
+# site/.gitignore — Next.js project (root .gitignore handles most things)
+# Only site-specific entries that need a relative path from this directory.
+
+# Next.js build output
+/.next/
+/out/
+/build/
+/.turbo/
+/coverage/
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+next-env.d.ts
+
+# Generated env file (handled by root .gitignore too, belt-and-suspenders)
+.env
+.env.*
+!.env.example
+
+# Vercel / deployment configs with tokens
+.vercel
+
+# Package manager noise
+node_modules/
+npm-debug.log*
+.pnpm-debug.log*
+
+# macOS Finder
+.DS_Store
+
+# Large data blobs — also in root .gitignore for redundancy
+/public/data/companies.json
+/public/data/questions-index.json
+
+# CLAUDE.md is an AI-assistant internal file — not needed in the public repo
+CLAUDE.md
