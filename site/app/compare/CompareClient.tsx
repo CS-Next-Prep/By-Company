@@ -7,6 +7,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import CompanyLogo from '@/components/CompanyLogo';
 import DifficultyBadge from '@/components/DifficultyBadge';
 
@@ -47,25 +48,13 @@ export default function CompareClient({ companies }: { companies: CompanyIndex[]
 
   // Fetch full question lists when both companies are selected
   useEffect(() => {
-    let ignore = false;
-    if (!companyA || !companyB) {
-      Promise.resolve().then(() => {
-        if (!ignore) {
-          setFullA(null);
-          setFullB(null);
-        }
-      });
-      return;
-    }
-    Promise.resolve().then(() => { if (!ignore) setLoading(true); });
+    if (!companyA || !companyB) { setFullA(null); setFullB(null); return; }
+    setLoading(true);
     getCompanyData().then(data => {
-      if (!ignore) {
-        setFullA(data.companies.find(c => c.slug === companyA.slug) ?? null);
-        setFullB(data.companies.find(c => c.slug === companyB.slug) ?? null);
-        setLoading(false);
-      }
+      setFullA(data.companies.find(c => c.slug === companyA.slug) ?? null);
+      setFullB(data.companies.find(c => c.slug === companyB.slug) ?? null);
+      setLoading(false);
     });
-    return () => { ignore = true; };
   }, [companyA, companyB]);
 
   // Intersection: questions asked by both companies

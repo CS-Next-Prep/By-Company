@@ -6,6 +6,7 @@ import ProblemPanel from '@/components/ProblemPanel';
 import type { Question } from '@/lib/types';
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
+const DIFF_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2, Unknown: 3 };
 
 const TOPICS: { label: string; keywords: string[] }[] = [
   { label: 'Array',          keywords: ['array', 'subarray', 'matrix', 'subarrays'] },
@@ -57,11 +58,7 @@ export default function SortableQuestionTable({
 
   const toggle = <T,>(set: Set<T>, val: T) => {
     const next = new Set(set);
-    if (next.has(val)) {
-      next.delete(val);
-    } else {
-      next.add(val);
-    }
+    next.has(val) ? next.delete(val) : next.add(val);
     return next;
   };
 
