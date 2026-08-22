@@ -66,13 +66,22 @@ export default function ProblemPanel({
 
   // Load company data from index
   useEffect(() => {
-    if (!questionId) { setLoading(false); return; }
-    setLoading(true);
+    let ignore = false;
+    if (!questionId) {
+      Promise.resolve().then(() => { if (!ignore) setLoading(false); });
+      return;
+    }
+    Promise.resolve().then(() => { if (!ignore) setLoading(true); });
     getQuestionsIndex().then(data => {
-      const entry = data.questions.find(q => q.id === questionId);
-      setCompanies(entry?.companies ?? []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+      if (!ignore) {
+        const entry = data.questions.find(q => q.id === questionId);
+        setCompanies(entry?.companies ?? []);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (!ignore) setLoading(false);
+    });
+    return () => { ignore = true; };
   }, [questionId]);
 
   // Keyboard close
