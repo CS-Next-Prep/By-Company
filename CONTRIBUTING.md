@@ -2,7 +2,7 @@
 
 Thank you for helping improve ByCompany.
 
-ByCompany is a CS-Next club project for focused technical interview preparation. Its purpose is deliberately narrow: someone should be able to choose a company, find the relevant interview-question list, and get on with preparing. Contributions are welcome when they make that experience more accurate, clearer, faster, or more accessible.
+ByCompany is a CS-Next project for focused technical interview preparation. Its purpose is deliberately narrow: someone should be able to choose a company, find the relevant interview-question list, and get on with preparing. Contributions are welcome when they make that experience more accurate, clearer, faster, or more accessible.
 
 This guide explains what belongs in the project, how to make a contribution, and the checks expected before opening a pull request.
 
