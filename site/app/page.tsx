@@ -40,8 +40,11 @@ export default function HomePage() {
         <h1 id="home-title">Pick a company and see what they&apos;ve asked.</h1>
       </section>
 
-      {/* Featured companies — no heading labels per user request */}
-      <section className="featured-section" aria-label="Popular companies">
+      {/* Featured companies */}
+      <section className="featured-section" aria-labelledby="featured-heading">
+        <div className="section-heading-row">
+          <h2 id="featured-heading">Featured Companies</h2>
+        </div>
         <div className="featured-grid">
           {FEATURED_SLUGS.map(slug => {
             const company = companyMap.get(slug);
