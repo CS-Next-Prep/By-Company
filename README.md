@@ -35,7 +35,7 @@ Company names and logos are trademarks of their respective owners.
 
 ## Contributing
 
-Found an incorrect question, broken link, or logo issue? Please [open an issue](https://github.com/CS-Next-Prep/ByCompany/issues).
+Found an incorrect question, broken link, or logo issue? Please [open an issue](https://github.com/CS-Next-Prep/By-Company/issues).
 
 ## About CS-Next
 
