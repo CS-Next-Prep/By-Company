@@ -28,12 +28,9 @@ npm-debug.log*
 # macOS Finder
 .DS_Store
 
-# Large data blobs — also in root .gitignore for redundancy
-/public/data/companies.json
-/public/data/questions-index.json
-
-# CLAUDE.md is an AI-assistant internal file — not needed in the public repo
+# CLAUDE.md is an AI-assistant internal file — not part of the public repo
 CLAUDE.md
+
 
 # Unused component (intro animation removed per design iteration)
 components/IntroAnimation.tsx
