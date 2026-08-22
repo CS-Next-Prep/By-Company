@@ -47,7 +47,7 @@ export default function AboutPage() {
         <p>
           The source code for this site is open. If you find incorrect data, a broken
           logo, or want to suggest an improvement, please{' '}
-          <a href="https://github.com/CS-Next-Prep/ByCompany/issues" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/CS-Next-Prep/By-Company/issues" target="_blank" rel="noopener noreferrer">
             open a GitHub issue
           </a>
           .
