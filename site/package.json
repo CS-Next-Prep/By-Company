@@ -7,9 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "type-check": "tsc --noEmit",
+    "validate": "node ../scripts/validate.mjs",
+    "test:validation": "node ../scripts/test-validation.mjs",
     "ingest": "node ../scripts/ingest.mjs",
     "generate-index": "node ../scripts/generate-index.mjs",
-    "pipeline": "node ../scripts/ingest.mjs && node ../scripts/generate-index.mjs && next build"
+    "pipeline": "npm run ingest && npm run generate-index && npm run validate && next build"
   },
   "dependencies": {
     "fuse.js": "^7.5.0",
