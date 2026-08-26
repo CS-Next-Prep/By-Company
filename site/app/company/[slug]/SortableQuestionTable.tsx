@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 import DifficultyBadge from '@/components/DifficultyBadge';
@@ -45,6 +45,8 @@ export default function SortableQuestionTable({
   const [diffFilter, setDiffFilter] = useState<Set<Difficulty>>(new Set());
   const [topicFilter, setTopicFilter] = useState<Set<string>>(new Set());
   const [active, setActive] = useState<ActiveQuestion | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const touchMoved = useRef(false);
 
   const questionsWithTopics = useMemo(
     () => questions.map(q => ({ ...q, topics: getTopics(q.title) })),
@@ -172,7 +174,29 @@ export default function SortableQuestionTable({
                 key={q.id || q.title}
                 className="question-row"
                 onClick={() => activateQuestion(q)}
-                onTouchEnd={e => { e.preventDefault(); activateQuestion(q); }}
+                onTouchStart={e => {
+                  const touch = e.touches[0];
+                  touchStart.current = { x: touch.clientX, y: touch.clientY };
+                  touchMoved.current = false;
+                }}
+                onTouchMove={e => {
+                  const start = touchStart.current;
+                  const touch = e.touches[0];
+                  if (start && touch) {
+                    const movedX = touch.clientX - start.x;
+                    const movedY = touch.clientY - start.y;
+                    if (Math.hypot(movedX, movedY) > 10) touchMoved.current = true;
+                  }
+                }}
+                onTouchEnd={e => {
+                  const wasScroll = touchMoved.current;
+                  touchStart.current = null;
+                  touchMoved.current = false;
+                  if (!wasScroll) {
+                    e.preventDefault();
+                    activateQuestion(q);
+                  }
+                }}
                 tabIndex={0}
                 onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
