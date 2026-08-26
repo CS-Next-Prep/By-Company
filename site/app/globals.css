@@ -575,7 +575,11 @@ button { color: inherit; }
   background: var(--csn-white);
   transition: background-color 120ms ease;
 }
-.question-row { cursor: pointer; }
+.question-row {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 .question-row:hover { background: var(--paper-tint) !important; }
 
 .question-table tbody td {
@@ -880,7 +884,9 @@ button { color: inherit; }
 
 /* ── Surprise Me button ──────────────────────────────────────────────────── */
 .surprise-btn {
+  touch-action: manipulation;
   margin-left: auto;
+
   padding: 0.3rem 0.8rem;
   border: 1.5px solid var(--csn-brass);
   border-radius: var(--radius);
@@ -1053,9 +1059,12 @@ button { color: inherit; }
   .header-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; padding: 0.4rem 0 0.75rem; border-top: 1px solid var(--rule-faint); }
   .search-wrap { grid-column: 2; }
   .featured-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .question-table thead th.th-freq,
-  .question-table tbody td.td-freq { display: none; }
-  .question-table thead th { top: 6.5rem; }
+    /* Keep all question metadata available on mobile. The table wrapper
+     provides horizontal scrolling when the full column set is wider than
+     the viewport. Header cells remain pinned to the wrapper, not the site
+     header, so rows cannot scroll behind them. */
+  .question-table thead th { top: 0; }
+
 }
 
 @media (max-width: 480px) {

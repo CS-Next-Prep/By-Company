@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+
 import DifficultyBadge from '@/components/DifficultyBadge';
 import ProblemPanel from '@/components/ProblemPanel';
 import type { Question } from '@/lib/types';
@@ -82,7 +84,14 @@ export default function SortableQuestionTable({
 
   const closePanel = useCallback(() => setActive(null), []);
 
+  // Some mobile browsers do not reliably synthesize click events for table rows
+  // after a touch gesture. Activate the same action explicitly at touch end.
+  const activateQuestion = useCallback((q: QuestionWithTopics) => {
+    openPanel(q);
+  }, [openPanel]);
+
   const surpriseMe = useCallback(() => {
+
     if (visible.length === 0) return;
     const pick = visible[Math.floor(Math.random() * visible.length)];
     setActive({ question: pick, maxFreq });
@@ -131,7 +140,13 @@ export default function SortableQuestionTable({
         )}
 
         {/* Surprise Me — opens a random question from the current filtered list */}
-        <button type="button" className="surprise-btn" onClick={surpriseMe} title="Open a random question">
+        <button
+          type="button"
+          className="surprise-btn"
+          onClick={surpriseMe}
+          onTouchEnd={e => { e.preventDefault(); surpriseMe(); }}
+          title="Open a random question"
+        >
           🎲 Surprise me
         </button>
 
@@ -156,9 +171,16 @@ export default function SortableQuestionTable({
               <tr
                 key={q.id || q.title}
                 className="question-row"
-                onClick={() => openPanel(q)}
+                onClick={() => activateQuestion(q)}
+                onTouchEnd={e => { e.preventDefault(); activateQuestion(q); }}
                 tabIndex={0}
-                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') openPanel(q); }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    activateQuestion(q);
+                  }
+                }}
+
                 aria-label={`${q.title} — click to view details`}
                 style={{ cursor: 'pointer' }}
               >
@@ -198,8 +220,9 @@ export default function SortableQuestionTable({
         )}
       </div>
 
-      {/* Right-side problem panel */}
-      {active && (
+      {/* Right-side problem panel. Render at document.body so a mobile
+          overflow/stacking context cannot clip or hide the fixed panel. */}
+      {active && typeof document !== 'undefined' && createPortal(
         <ProblemPanel
           questionId={active.question.id}
           title={active.question.title}
@@ -210,8 +233,10 @@ export default function SortableQuestionTable({
           topics={active.question.topics}
           currentCompanySlug={companySlug}
           onClose={closePanel}
-        />
+        />,
+        document.body,
       )}
+
     </>
   );
 }
