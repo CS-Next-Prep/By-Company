@@ -84,6 +84,7 @@ for (const company of data.companies) {
     if (existing) {
       existing.questionWeight += weight;
       existing.companyCount += 1;
+      existing.frequency = Math.max(existing.frequency, question.frequency);
       existing.companies.push(companyReference);
       continue;
     }

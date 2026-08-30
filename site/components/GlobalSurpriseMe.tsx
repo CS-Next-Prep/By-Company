@@ -71,7 +71,7 @@ export default function GlobalSurpriseMe() {
       <div className="global-surprise">
         <div>
           <h2>Not sure where to start?</h2>
-          <p>Open a weighted-random question from the full dataset.</p>
+          <p>Let chance choose your next challenge.</p>
         </div>
         <button
           type="button"
