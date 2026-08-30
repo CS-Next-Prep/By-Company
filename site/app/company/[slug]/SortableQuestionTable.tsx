@@ -6,27 +6,9 @@ import { createPortal } from 'react-dom';
 import DifficultyBadge from '@/components/DifficultyBadge';
 import ProblemPanel from '@/components/ProblemPanel';
 import type { Question } from '@/lib/types';
+import { getQuestionTopics } from '@/lib/question-topics';
 
 type Difficulty = 'Easy' | 'Medium' | 'Hard';
-
-const TOPICS: { label: string; keywords: string[] }[] = [
-  { label: 'Array',          keywords: ['array', 'subarray', 'matrix', 'subarrays'] },
-  { label: 'String',         keywords: ['string', 'palindrome', 'anagram', 'substring', 'subsequence'] },
-  { label: 'DP',             keywords: ['dp', 'dynamic', 'knapsack', 'coin change', 'longest common', 'edit distance', 'partition', 'fibonacci'] },
-  { label: 'Tree',           keywords: ['tree', 'bst', 'binary tree', 'trie', 'segment tree'] },
-  { label: 'Graph',          keywords: ['graph', 'bfs', 'dfs', 'topological', 'dijkstra', 'network', 'island', 'flood fill', 'cycle'] },
-  { label: 'Linked List',    keywords: ['linked list', 'node', 'cycle', 'reverse list', 'merge list'] },
-  { label: 'Binary Search',  keywords: ['binary search', 'search insert', 'rotated', 'peak'] },
-  { label: 'Sliding Window', keywords: ['sliding window', 'window', 'two pointer', 'two sum'] },
-  { label: 'Stack/Queue',    keywords: ['stack', 'queue', 'monotonic', 'valid parentheses', 'bracket'] },
-  { label: 'Heap',           keywords: ['heap', 'priority queue', 'kth largest', 'top k', 'median'] },
-  { label: 'Math',           keywords: ['math', 'number', 'digit', 'prime', 'pow', 'sqrt', 'roman', 'integer'] },
-];
-
-function getTopics(title: string) {
-  const low = title.toLowerCase();
-  return TOPICS.filter(t => t.keywords.some(kw => low.includes(kw))).map(t => t.label);
-}
 
 interface QuestionWithTopics extends Question { topics: string[] }
 
@@ -49,7 +31,7 @@ export default function SortableQuestionTable({
   const touchMoved = useRef(false);
 
   const questionsWithTopics = useMemo(
-    () => questions.map(q => ({ ...q, topics: getTopics(q.title) })),
+    () => questions.map(q => ({ ...q, topics: getQuestionTopics(q.title) })),
     [questions],
   );
 
@@ -149,7 +131,7 @@ export default function SortableQuestionTable({
           onTouchEnd={e => { e.preventDefault(); surpriseMe(); }}
           title="Open a random question"
         >
-          🎲 Surprise me
+          Surprise me
         </button>
 
         <span className="filter-count-badge" aria-live="polite">

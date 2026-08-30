@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { getAllCompanies } from '@/lib/data';
 import CompanyLogo from '@/components/CompanyLogo';
 import FeaturedLogo from '@/components/FeaturedLogo';
+import GlobalSurpriseMe from '@/components/GlobalSurpriseMe';
 
 export const metadata: Metadata = {
   title: 'ByCompany — CS-Next',
@@ -39,6 +40,8 @@ export default function HomePage() {
       <section className="home-hero" aria-labelledby="home-title">
         <h1 id="home-title">Pick a company and see what they&apos;ve asked.</h1>
       </section>
+
+      <GlobalSurpriseMe />
 
       {/* Featured companies */}
       <section className="featured-section" aria-labelledby="featured-heading">

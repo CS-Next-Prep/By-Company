@@ -9,6 +9,7 @@ const DATA_DIR = path.join(__dirname, '..', 'site', 'public', 'data');
 const COMPANIES_FILE = process.env.TEST_COMPANIES_FILE || path.join(DATA_DIR, 'companies.json');
 const COMPANIES_INDEX_FILE = process.env.TEST_COMPANIES_INDEX_FILE || path.join(DATA_DIR, 'companies-index.json');
 const QUESTIONS_INDEX_FILE = process.env.TEST_QUESTIONS_INDEX_FILE || path.join(DATA_DIR, 'questions-index.json');
+const GLOBAL_SURPRISE_FILE = process.env.TEST_GLOBAL_SURPRISE_FILE || path.join(DATA_DIR, 'global-surprise.json');
 
 let hasError = false;
 
@@ -182,6 +183,37 @@ if (checkExists(QUESTIONS_INDEX_FILE)) {
               reportError(`questions-index.json -> Question '${q.title}' references a company slug '${companyRef.slug}' that does not exist in companies-index.json.`);
             }
           });
+        }
+      });
+    }
+  }
+}
+
+// 4. Validate global Surprise Me index (Generated Data)
+console.log('--- Validating global-surprise.json ---');
+if (checkExists(GLOBAL_SURPRISE_FILE)) {
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(GLOBAL_SURPRISE_FILE, 'utf8'));
+  } catch (e) {
+    reportError(`Failed to parse JSON in ${GLOBAL_SURPRISE_FILE}: ${e.message}`);
+  }
+
+  if (data) {
+    if (!Array.isArray(data.questions)) {
+      reportError("global-surprise.json must have a 'questions' array.");
+    } else {
+      data.questions.forEach((q, i) => {
+        if (
+          !q || typeof q !== 'object' ||
+          typeof q.id !== 'number' || !Number.isFinite(q.id) ||
+          typeof q.title !== 'string' || q.title.trim() === '' ||
+          typeof q.difficulty !== 'string' ||
+          typeof q.frequency !== 'number' || !Number.isFinite(q.frequency) ||
+          typeof q.leetcode_url !== 'string' || q.leetcode_url.trim() === '' ||
+          typeof q.finalWeight !== 'number' || !Number.isFinite(q.finalWeight) || q.finalWeight <= 0
+        ) {
+          reportError(`global-surprise.json -> Question at index ${i} has invalid required fields.`);
         }
       });
     }
