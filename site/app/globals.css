@@ -1055,9 +1055,16 @@ button { color: inherit; }
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 760px) {
-  .site-header .container { grid-template-columns: auto 1fr; min-height: 3.75rem; gap: 0.75rem; }
+  .site-header .container {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    min-height: 3.75rem;
+    gap: 0.75rem;
+    padding-block: 0.7rem 0.55rem;
+  }
   .header-nav { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; padding: 0.4rem 0 0.75rem; border-top: 1px solid var(--rule-faint); }
-  .search-wrap { grid-column: 2; }
+  .search-wrap { grid-column: 2; grid-row: 1; align-self: center; }
+
   .featured-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     /* Keep all question metadata available on mobile. The table wrapper
      provides horizontal scrolling when the full column set is wider than
