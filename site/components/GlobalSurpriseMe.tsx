@@ -69,7 +69,7 @@ export default function GlobalSurpriseMe() {
   return (
     <>
       <div className="global-surprise">
-        <div>
+        <div className="global-surprise-copy">
           <h2>Not sure where to start?</h2>
           <p>Let chance choose your next challenge.</p>
         </div>
