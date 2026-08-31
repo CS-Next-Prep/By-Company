@@ -32,6 +32,11 @@ function runTest(name, dataFiles, expectedToFail) {
     fs.writeFileSync(p, JSON.stringify(dataFiles.questionsIndex));
     env.TEST_QUESTIONS_INDEX_FILE = p;
   }
+  if (dataFiles.globalSurprise) {
+    const p = path.join(tempDir, 'global-surprise.json');
+    fs.writeFileSync(p, JSON.stringify(dataFiles.globalSurprise));
+    env.TEST_GLOBAL_SURPRISE_FILE = p;
+  }
 
   try {
     const output = execSync(`node ${validateScript}`, { env, encoding: 'utf8', stdio: 'pipe' });
@@ -106,7 +111,46 @@ runTest('Empty companies array in questions-index.json', {
   }
 }, true);
 
-// 6. Valid case
+const validGlobalSurprise = {
+  questions: [
+    {
+      id: 1,
+      title: 'Two Sum',
+      difficulty: 'Easy',
+      frequency: 100,
+      leetcode_url: 'https://leetcode.com/problems/two-sum',
+      finalWeight: Math.log1p(100),
+    }
+  ]
+};
+
+// 6. Missing questions array in global-surprise.json
+runTest('Missing questions array in global-surprise.json', {
+  companies: { companies: [] },
+  companiesIndex: { companies: [] },
+  questionsIndex: { questions: [] },
+  globalSurprise: {}
+}, true);
+
+// 7. Invalid finalWeight in global-surprise.json
+runTest('Invalid finalWeight in global-surprise.json', {
+  companies: { companies: [] },
+  companiesIndex: { companies: [] },
+  questionsIndex: { questions: [] },
+  globalSurprise: {
+    questions: [{ ...validGlobalSurprise.questions[0], finalWeight: 0 }]
+  }
+}, true);
+
+// 8. Valid global-surprise.json case
+runTest('Valid global-surprise.json should pass', {
+  companies: { companies: [] },
+  companiesIndex: { companies: [] },
+  questionsIndex: { questions: [] },
+  globalSurprise: validGlobalSurprise
+}, false);
+
+// 9. Valid case
 runTest('Valid data should pass', {
   companies: {
     companies: [
