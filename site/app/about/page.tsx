@@ -8,9 +8,15 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="container about-page">
-      <h1>About ByCompany</h1>
+      <header className="about-hero">
+        <p className="about-eyebrow">About</p>
+        <h1>ByCompany</h1>
+        <p className="about-lead">
+          A focused, community-maintained index of interview question trends by company.
+        </p>
+      </header>
 
-      <section className="about-section">
+      <section className="about-section about-section-wide">
         <h2>What this is</h2>
         <p>
           ByCompany is a static lookup tool built by CS-Next. Pick a company, see
@@ -61,7 +67,7 @@ export default function AboutPage() {
           This project&apos;s data comes from the following community-maintained
           repositories. We&apos;re grateful to their maintainers and contributors:
         </p>
-        <ul>
+        <ul className="about-source-list">
           <li>
             <a
               href="https://github.com/snehasishroy/leetcode-companywise-interview-questions"

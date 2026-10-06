@@ -890,15 +890,41 @@ button { color: inherit; }
 .panel-company-freq { font-size: 0.8125rem; color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ── About page ──────────────────────────────────────────────────────────── */
-.about-page { padding: 3rem 0 5rem; }
-.about-page > h1 { margin-bottom: 1.5rem; }
-.about-section { max-width: 46rem; padding: 1.65rem 0; border-top: 1px solid var(--rule); }
+.about-page { padding: 3.25rem 0 5rem; }
+.about-hero {
+  max-width: 46rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+.about-eyebrow {
+  color: var(--csn-brass);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.about-hero h1 { margin-top: 0.35rem; }
+.about-lead {
+  max-width: 40rem;
+  margin-top: 0.9rem;
+  color: var(--csn-ink);
+  font-size: 1.03rem;
+  line-height: 1.7;
+}
+.about-section { max-width: 46rem; padding: 1.4rem 0; border-top: 1px solid var(--rule); }
 .about-section:last-child { border-bottom: 1px solid var(--rule); }
-.about-section h2 { margin-bottom: 0.8rem; }
+.about-section-wide { max-width: 48rem; }
+.about-section h2 { margin-bottom: 0.7rem; color: var(--csn-ink); }
 .about-section p, .about-section li { color: var(--ink-faint); font-size: 0.9375rem; line-height: 1.75; }
 .about-section p + p { margin-top: 0.7rem; }
 .about-section ul { padding-left: 1.1rem; }
+.about-section li + li { margin-top: 0.5rem; }
 .about-section li::marker { color: var(--csn-gold); }
+.about-source-list {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0 0.5rem 1rem;
+  border-left: 2px solid rgba(191, 135, 43, 0.25);
+}
 
 /* ── 404 ─────────────────────────────────────────────────────────────────── */
 .not-found-page { padding: 5rem 0; }
@@ -1106,6 +1132,8 @@ button { color: inherit; }
 
 @media (max-width: 480px) {
   .container { width: min(100% - 1.25rem, 76rem); }
+  .about-page { padding-top: 2.25rem; }
+  .about-lead { font-size: 0.975rem; }
   .featured-grid { grid-template-columns: 1fr; }
   .featured-card { padding-block: 0.7rem; }
   .company-row-count { min-width: auto; }
