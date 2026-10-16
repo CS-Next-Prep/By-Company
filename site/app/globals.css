@@ -273,8 +273,11 @@ button { color: inherit; }
   border-bottom: 1px solid var(--rule-faint);
   color: var(--csn-ink);
 }
-.search-result-item:last-child { border-bottom: 0; }
-.search-result-item:hover { background: var(--paper-tint); }
+.search-result-item:hover,
+.search-result-item.selected,
+.search-result-item[aria-selected="true"] {
+  background: var(--paper-tint);
+}
 
 .search-result-name { flex: 1; min-width: 0; color: var(--csn-ink); font-size: 0.9rem; }
 .search-result-name mark { background: transparent; color: var(--csn-gold); font-weight: 600; }
@@ -289,6 +292,18 @@ button { color: inherit; }
 .search-result-company { color: var(--csn-gold); }
 .search-result-company:hover { text-decoration: underline; }
 .search-empty { padding: 0.8rem 0.85rem; color: var(--ink-faint); font-size: 0.875rem; }
+
+/* Section header for Companies / Questions groups in the dropdown */
+.search-section-header {
+  padding: 0.3rem 0.85rem 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule-faint);
+  background: var(--paper-tint);
+}
 
 /* ── Question search result item (new QuestionResultItem component) ──── */
 /* The outer wrapper re-uses .search-result-item for border/padding/hover,
@@ -1155,4 +1170,82 @@ button { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ── Question page (/question/[id]/) ──────────────────────────────────────── */
+.question-page-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.question-page-id {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.question-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+
+/* Company table on the question page */
+.question-company-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+.question-company-table th {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: left;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.th-freq, .td-freq { width: 14rem; text-align: right; }
+.question-company-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--rule-faint);
+  vertical-align: middle;
+}
+.question-company-table tr:last-child td { border-bottom: 0; }
+.question-company-table tbody tr:hover { background: var(--paper-tint); }
+
+.question-company-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--csn-ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.question-company-link:hover { color: var(--csn-gold); opacity: 1; }
+
+.freq-bar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.freq-bar {
+  display: inline-block;
+  height: 0.4rem;
+  min-width: 4px;
+  max-width: 7rem;
+  background: var(--csn-gold);
+  border-radius: 2px;
+  opacity: 0.6;
+}
+.freq-label {
+  font-size: 0.8125rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  min-width: 2.5rem;
+  text-align: right;
 }

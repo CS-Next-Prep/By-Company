@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
-import { getAllCompanies } from "@/lib/data";
+import { getAllCompanies, getAllQuestionsIndex } from "@/lib/data";
 
 // Font: system font stack (SF Pro on macOS/iOS, Segoe UI on Windows, etc.)
 // This matches the user's request for SF Pro / Apple-style typography.
@@ -25,6 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const companies = getAllCompanies();
+  const questions = getAllQuestionsIndex();
 
   return (
     <html lang="en">
@@ -34,7 +35,7 @@ export default function RootLayout({
       </head>
       <body>
         {/* Intro animation removed per user request */}
-        <SiteHeader companies={companies} />
+        <SiteHeader companies={companies} questions={questions} />
 
         <a href="#main-content" className="skip-to-main" tabIndex={0}>
           Skip to main content
