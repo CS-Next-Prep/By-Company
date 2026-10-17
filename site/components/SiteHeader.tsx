@@ -29,14 +29,47 @@ interface CompanyIndex {
 
 interface SiteHeaderProps {
   companies: CompanyIndex[];
-  questions: QuestionIndex[];
 }
 
 const MAX_COMPANY_RESULTS = 5;
 const MAX_QUESTION_RESULTS = 5;
 const MAX_COMPANIES_SHOWN_PER_Q = 3;
 
-export default function SiteHeader({ companies, questions }: SiteHeaderProps) {
+// Module-level cache so questions index is downloaded at most once per session
+let questionsCache: Promise<QuestionIndex[]> | null = null;
+
+function fetchQuestionsIndex(): Promise<QuestionIndex[]> {
+  if (!questionsCache) {
+    questionsCache = fetch('/data/questions-index.json')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load questions-index.json');
+        return res.json();
+      })
+      .then(data => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (data.questions || []).map((q: any) => ({
+          id: q.id,
+          title: q.title,
+          difficulty: q.difficulty || 'Unknown',
+          companyCount: q.companies?.length || 0,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          companies: (q.companies || []).slice(0, 3).map((c: any) => ({
+            slug: c.slug,
+            displayName: c.displayName,
+            logo: c.logo || null,
+            frequency: c.frequency || 0,
+          })),
+        }));
+      })
+      .catch(err => {
+        console.error('[SiteHeader] Error loading questions index:', err);
+        return [];
+      });
+  }
+  return questionsCache;
+}
+
+export default function SiteHeader({ companies }: SiteHeaderProps) {
   const [query, setQuery] = useState('');
   const [companyResults, setCompanyResults] = useState<CompanyIndex[]>([]);
   const [questionResults, setQuestionResults] = useState<QuestionIndex[]>([]);
@@ -58,14 +91,18 @@ export default function SiteHeader({ companies, questions }: SiteHeaderProps) {
 
   const loadFuse = useCallback(async () => {
     if (fuseLoaded.current) return;
-    const Fuse = (await import('fuse.js')).default;
+    const [FuseModule, questionItems] = await Promise.all([
+      import('fuse.js'),
+      fetchQuestionsIndex(),
+    ]);
+    const Fuse = FuseModule.default;
     companyFuseRef.current = new Fuse(companies, {
       keys: ['displayName', 'slug'],
       threshold: 0.35,
       includeScore: true,
       ignoreLocation: true,
     });
-    questionFuseRef.current = new Fuse(questions, {
+    questionFuseRef.current = new Fuse(questionItems, {
       keys: ['title'],
       threshold: 0.35,
       includeScore: true,
@@ -73,7 +110,7 @@ export default function SiteHeader({ companies, questions }: SiteHeaderProps) {
     });
     fuseLoaded.current = true;
     setReady(true);
-  }, [companies, questions]);
+  }, [companies]);
 
   const search = useCallback((value: string) => {
     const q = value.trim();
