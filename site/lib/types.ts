@@ -35,3 +35,13 @@ export interface CompanyIndex {
   logo: string | null;
   questionCount: number;
 }
+
+/** A question entry used in the search index — derived from companies.json at build time. */
+export interface QuestionIndex {
+  id: number;
+  title: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard' | 'Unknown';
+  leetcode_url?: string;
+  companyCount: number;
+  companies: Array<{ slug: string; displayName: string; logo: string | null; frequency: number }>;
+}

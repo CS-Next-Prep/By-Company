@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { CompaniesData, Company, CompanyIndex } from './types';
+import type { CompaniesData, Company, CompanyIndex, QuestionIndex } from './types';
 
 const DATA_FILE = path.join(process.cwd(), 'public', 'data', 'companies.json');
 
@@ -60,4 +60,68 @@ export function getDataMeta(): { generatedAt: string; source: string; sourceDate
     sourceDate: data.sourceDate,
     totalCompanies: data.totalCompanies,
   };
+}
+
+let _questionIndexCache: QuestionIndex[] | null = null;
+
+/**
+ * Builds a cross-company question index from companies.json.
+ * Each entry contains the question's id, title, difficulty, leetcode_url, and the companies
+ * that asked it (sorted by frequency desc).
+ *
+ * This runs at build time only (static generation).
+ */
+export function getAllQuestionsIndex(): QuestionIndex[] {
+  if (_questionIndexCache) return _questionIndexCache;
+
+  const data = loadData();
+
+  // Accumulate per-question data across all companies
+  const questionMap = new Map<number, QuestionIndex>();
+
+  for (const company of data.companies) {
+    for (const q of company.questions) {
+      if (!questionMap.has(q.id)) {
+        questionMap.set(q.id, {
+          id: q.id,
+          title: q.title,
+          difficulty: q.difficulty,
+          leetcode_url: q.leetcode_url,
+          companyCount: 0,
+          companies: [],
+        });
+      }
+      const entry = questionMap.get(q.id)!;
+      entry.companies.push({
+        slug: company.slug,
+        displayName: company.displayName,
+        logo: company.logo,
+        frequency: q.frequency,
+      });
+    }
+  }
+
+  // Sort each question's company list by frequency desc, then set companyCount
+  const result: QuestionIndex[] = [];
+  for (const entry of questionMap.values()) {
+    entry.companies.sort((a, b) => b.frequency - a.frequency);
+    entry.companyCount = entry.companies.length;
+    result.push(entry);
+  }
+
+  // Sort questions by company count desc (most cross-company first) for stable UX
+  result.sort((a, b) => b.companyCount - a.companyCount);
+  _questionIndexCache = result;
+  return _questionIndexCache;
+}
+
+/**
+ * Returns a single question index entry by id, or undefined if not found.
+ */
+export function getQuestion(id: number): QuestionIndex | undefined {
+  return getAllQuestionsIndex().find(q => q.id === id);
+}
+
+export function getAllQuestionIds(): number[] {
+  return getAllQuestionsIndex().map(q => q.id);
 }

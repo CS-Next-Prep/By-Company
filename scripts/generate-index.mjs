@@ -130,6 +130,7 @@ fs.writeFileSync(GLOBAL_OUTPUT, JSON.stringify(globalSurprise), 'utf8');
 const questions = globalQuestions.map(q => ({
   id: q.id,
   title: q.title,
+  difficulty: q.difficulty,
   companies: q.companies,
 }));
 fs.writeFileSync(QUESTIONS_OUTPUT, JSON.stringify({ questions }), 'utf8');
