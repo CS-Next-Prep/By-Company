@@ -4,7 +4,6 @@ import SiteHeader from "@/components/SiteHeader";
 import { getAllCompanies } from "@/lib/data";
 
 // Font: system font stack (SF Pro on macOS/iOS, Segoe UI on Windows, etc.)
-// This matches the user's request for SF Pro / Apple-style typography.
 // No external font load needed — entirely native.
 
 export const metadata: Metadata = {
@@ -33,7 +32,6 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body>
-        {/* Intro animation removed per user request */}
         <SiteHeader companies={companies} />
 
         <a href="#main-content" className="skip-to-main" tabIndex={0}>
