@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About & Sources — CS-Next ByCompany',
@@ -125,6 +125,27 @@ export default function AboutPage() {
           </a>
           .
         </p>
+      </section>
+
+      <section className="about-section">
+        <h2>Developers</h2>
+        <p>ByCompany is built and maintained by the following contributors:</p>
+        <ul className="about-source-list">
+          <li>
+            <a href="https://github.com/Vardhan-IMMIDI" target="_blank" rel="noopener noreferrer">
+              Naga Vijay Vardhan Gupta Immidi
+            </a>
+            {' '}&mdash;{' '}
+            <a href="mailto:hi@vrdn.is-a.dev">hi@vrdn.is-a.dev</a>
+          </li>
+          <li>
+            <a href="https://github.com/varma1221" target="_blank" rel="noopener noreferrer">
+              Tanoj Pavan Surya Varma Penmatsa
+            </a>
+            {' '}&mdash;{' '}
+            <a href="mailto:hello@pavanvarma.is-a.dev">hello@pavanvarma.is-a.dev</a>
+          </li>
+        </ul>
       </section>
     </div>
   );

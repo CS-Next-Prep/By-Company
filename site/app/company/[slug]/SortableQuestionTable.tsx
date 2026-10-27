@@ -139,7 +139,6 @@ export default function SortableQuestionTable({
         </span>
       </div>
 
-      {/* Question table — plain column labels (no sort buttons per user request) */}
       <div className="question-table-wrap">
         <table className="question-table" aria-label="Interview questions">
           <thead>

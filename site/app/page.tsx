@@ -36,7 +36,6 @@ export default function HomePage() {
 
   return (
     <div className="container home-shell">
-      {/* Hero — simplified to one line per user request */}
       <section className="home-hero" aria-labelledby="home-title">
         <h1 id="home-title">Pick a company and see what they&apos;ve asked.</h1>
       </section>

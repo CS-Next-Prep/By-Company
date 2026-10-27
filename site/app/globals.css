@@ -2,8 +2,7 @@
  * CS-Next ByCompany
  *
  * Font: system stack — SF Pro on macOS/iOS, Segoe UI on Windows, system-ui elsewhere.
- * Background: #f5f5f7 (Apple.com style — clean cool off-white, user request override of AGENTS.md #FCFAF6)
- * Cursor: custom gold arrow, Figma-style (user request)
+ * Background: #f5f5f7 (Apple.com style — clean cool off-white)
  *
  * Brand tokens from AGENTS.md Section 1 — exact hex values, not negotiable:
  *   Gold #BE830E · Brass #BF872B · Ink #1A1410 · Paper #f5f5f7 (user override) · White #FFFFFF
@@ -23,7 +22,7 @@
   --csn-gold:   #BE830E;
   --csn-brass:  #BF872B;
   --csn-ink:    #1A1410;
-  --csn-paper:  #f5f5f7;    /* Apple.com cool off-white — user request */
+  --csn-paper:  #f5f5f7;    /* Apple.com cool off-white */
   --csn-white:  #FFFFFF;
   --rule:        rgba(0, 0, 0, 0.1);
   --rule-faint:  rgba(0, 0, 0, 0.06);
@@ -166,7 +165,6 @@ button { color: inherit; }
 
 .header-brand-lockup { display: grid; gap: 0.1rem; }
 
-/* Bigger brand text per user request */
 .header-brand-text {
   color: var(--csn-ink);
   font-size: 1.1875rem;    /* was 1rem — noticeably larger */
