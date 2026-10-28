@@ -1,4 +1,7 @@
-# ByCompany by CS-Next Club
+[![CI](https://github.com/CS-Next-Prep/By-Company/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/CS-Next-Prep/By-Company/actions/workflows/ci.yml)
+[![Data Refresh](https://github.com/CS-Next-Prep/By-Company/actions/workflows/refresh.yml/badge.svg)](https://github.com/CS-Next-Prep/By-Company/actions/workflows/refresh.yml)
+
+<h1 align="center">ByCompany by CS-Next Club</h1>
 
 <img width="1920" height="1080" alt="PRESENTS" src="https://github.com/user-attachments/assets/2c7cace5-ddfa-4758-90e1-3d90c6a9fc45" />
 
