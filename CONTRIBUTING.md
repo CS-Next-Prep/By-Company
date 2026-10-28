@@ -6,6 +6,8 @@ ByCompany is a CS-Next project for focused technical interview preparation. Its 
 
 This guide explains what belongs in the project, how to make a contribution, and the checks expected before opening a pull request.
 
+If you are working with an AI coding agent (GitHub Copilot, Claude Code, Cursor, Gemini CLI, or similar), direct it to read [AGENTS.md](AGENTS.md) before making any changes. AGENTS.md distils the rules in this document into a form agents can consume reliably, and adds agent-specific constraints around the static-export architecture, generated files, and prohibited features.
+
 ## Before you begin
 
 Please read the [README](README.md) and look through existing [issues](https://github.com/CS-Next-Prep/ByCompany/issues) before starting work. There may already be an active report, a discussion, or a pull request covering the same change.
@@ -247,6 +249,8 @@ The production build is important: it confirms that the static export can genera
 If a check cannot be run, say why in the pull request. Do not describe an unchecked change as verified.
 
 ### 4. Write a clear pull request
+
+All pull requests must use the repository's pull request template located at `.github/PULL_REQUEST_TEMPLATE.md`. GitHub populates the description automatically when you open a PR through the web interface or the GitHub CLI (`gh pr create`). Do not delete the template structure, skip sections without explanation, or replace it with a blank description. A PR submitted without the template will be asked to resubmit.
 
 Use a concise title that describes the outcome. These formats work well:
 
