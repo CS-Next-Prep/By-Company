@@ -1,8 +1,12 @@
 ## Summary
 
-<!-- One or two sentences describing what this pull request does and why. -->
+< One or two sentences describing what this pull request does and why. >
 
-Fixes # <!-- issue number, if applicable -->
+< Please also include relevant motivation and context. >
+
+## Issue Link
+
+< Link to the relevant issue or task, if applicable > (e.g. `closes #00` or `solves #00`)
 
 ---
 
@@ -20,18 +24,6 @@ Fixes # <!-- issue number, if applicable -->
 
 ---
 
-## What changed
-
-<!-- Describe the specific changes made. Be precise about which files, components, or data records were modified. Avoid vague language such as "various improvements." -->
-
----
-
-## Why it changed
-
-<!-- Describe the problem this pull request solves or the gap it fills. Reference the relevant issue, user report, or data discrepancy. -->
-
----
-
 ## How it was checked
 
 <!-- List the commands you ran and any manual steps you took to verify the change. Do not mark this section as verified if checks were not completed. -->
@@ -43,26 +35,9 @@ Fixes # <!-- issue number, if applicable -->
 - [ ] Desktop and narrow-screen layouts reviewed (if interface was changed)
 - [ ] Keyboard navigation verified (if interface was changed)
 
-Additional steps taken:
-
-<!-- Describe any other verification performed, or state "None beyond the above." -->
-
----
-
-## Data or logo source
-
-<!-- Required when this pull request adds or modifies question data or company logos.
-
-     For data: state the source name, URL, date or revision, and any relevant licensing information.
-     For logos: state where the asset was obtained and confirm it is an official mark.
-
-     If not applicable, write "Not applicable." -->
-
 ---
 
 ## Checklist — before requesting review
-
-> Complete this section as the pull request author. Remove items that genuinely do not apply and state why in the description above.
 
 **Scope and content**
 - [ ] This pull request has a single, coherent purpose.
