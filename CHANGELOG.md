@@ -18,7 +18,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Add `AGENTS.md` at the repository root with authoritative guidance for AI coding agents covering repo layout, absolute prohibitions (LeetCode content boundary, prohibited features, static-export constraint), coding standards, data rules, and the full commands reference ([#29](https://github.com/CS-Next-Prep/By-Company/issues/29)) @varma1221.
 - Add `.github/PULL_REQUEST_TEMPLATE.md` to standardise pull request descriptions, verification steps, and review checklists across all contributors ([#30](https://github.com/CS-Next-Prep/By-Company/pull/30)) @varma1221.
+
+### Changed
+
+- Update `CONTRIBUTING.md` to direct contributors using AI agents to read `AGENTS.md` before making changes, and to mandate use of the pull request template for all submissions ([#29](https://github.com/CS-Next-Prep/By-Company/issues/29)) @varma1221.
 
 ## [2026-10-27]
 
