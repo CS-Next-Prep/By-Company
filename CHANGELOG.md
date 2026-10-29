@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [2026-10-29]
+
+### Fixed
+
+- Prevent permanent loading state on the Compare page by handling failed `companies.json` requests, enabling retries on failure, and displaying an error alert ([#35](https://github.com/CS-Next-Prep/By-Company/pull/35)) @bfs2021.
+
 ## [2026-10-28]
 
 ### Added
