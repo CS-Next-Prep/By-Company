@@ -1107,6 +1107,7 @@ button { color: inherit; }
 
 .compare-loading { color: var(--ink-faint); padding: 1rem 0; }
 .compare-empty   { color: var(--ink-faint); padding: 1.5rem 0; }
+.compare-error   { color: #8b2d24; padding: 1rem 0; }
 .compare-hint    { color: var(--ink-faint); margin-top: 0.5rem; }
 
 .compare-q-link {
