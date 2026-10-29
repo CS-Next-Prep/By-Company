@@ -9,6 +9,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import CompanyLogo from '@/components/CompanyLogo';
 import DifficultyBadge from '@/components/DifficultyBadge';
+import { createCompanyDataLoader } from '@/lib/company-data';
 
 interface CompanyIndex {
   slug: string;
@@ -29,14 +30,8 @@ interface CompanyFull extends CompanyIndex {
   questions: Question[];
 }
 
-// Module-level cache — full JSON loaded once per session, never re-fetched
-let dataCache: Promise<{ companies: CompanyFull[] }> | null = null;
-function getCompanyData() {
-  if (!dataCache) {
-    dataCache = fetch('/data/companies.json').then(r => r.json());
-  }
-  return dataCache;
-}
+// Module-level loader — full JSON loaded once per session, retried after a failure
+const getCompanyData = createCompanyDataLoader(url => fetch(url));
 
 export default function CompareClient({ companies }: { companies: CompanyIndex[] }) {
   const [companyA, setCompanyA] = useState<CompanyIndex | null>(null);
@@ -44,6 +39,7 @@ export default function CompareClient({ companies }: { companies: CompanyIndex[]
   const [fullA, setFullA]       = useState<CompanyFull | null>(null);
   const [fullB, setFullB]       = useState<CompanyFull | null>(null);
   const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState(false);
 
   // Fetch full question lists when both companies are selected
   useEffect(() => {
@@ -53,18 +49,31 @@ export default function CompareClient({ companies }: { companies: CompanyIndex[]
         if (!ignore) {
           setFullA(null);
           setFullB(null);
+          setError(false);
         }
       });
       return;
     }
-    Promise.resolve().then(() => { if (!ignore) setLoading(true); });
-    getCompanyData().then(data => {
+    Promise.resolve().then(() => {
       if (!ignore) {
-        setFullA(data.companies.find(c => c.slug === companyA.slug) ?? null);
-        setFullB(data.companies.find(c => c.slug === companyB.slug) ?? null);
-        setLoading(false);
+        setLoading(true);
+        setError(false);
       }
     });
+    getCompanyData()
+      .then(data => {
+        if (!ignore) {
+          setFullA(data.companies.find(c => c.slug === companyA.slug) ?? null);
+          setFullB(data.companies.find(c => c.slug === companyB.slug) ?? null);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setError(true);
+          setLoading(false);
+        }
+      });
     return () => { ignore = true; };
   }, [companyA, companyB]);
 
@@ -112,6 +121,12 @@ export default function CompareClient({ companies }: { companies: CompanyIndex[]
       {bothPicked && (
         <div className="compare-results">
           {loading && <p className="compare-loading">Loading question data…</p>}
+
+          {!loading && error && (
+            <p className="compare-error" role="alert">
+              Could not load question data. Check your connection and select a company again to retry.
+            </p>
+          )}
 
           {!loading && fullA && fullB && (
             <>
