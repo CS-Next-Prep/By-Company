@@ -25,7 +25,7 @@ date-stamped sections rather than version numbers.
     `Map` to improve performance while retaining the highest-frequency
     question for each ID
     ([#34](https://github.com/CS-Next-Prep/By-Company/issues/34)).
-    @narapureddisomasekhar-coder
+    @narapureddisomasekhar-coder.
 
 ### Fixed
 
