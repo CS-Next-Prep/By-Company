@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [2026-10-29]
 
+### Changed
+
+- Replace O(N²) question deduplication in `scripts/ingest.mjs` with a `Map` to improve performance while retaining the highest-frequency question for each ID ([#34](https://github.com/CS-Next-Prep/By-Company/issues/34)) @narapureddisomasekhar-coder.
+
 ### Fixed
 
 - Prevent permanent loading state on the Compare page by handling failed `companies.json` requests, enabling retries on failure, and displaying an error alert ([#35](https://github.com/CS-Next-Prep/By-Company/pull/35)) @bfs2021.

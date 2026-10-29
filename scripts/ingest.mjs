@@ -378,7 +378,7 @@ async function main() {
       continue;
     }
     
-    const questions = rows
+    const questionMap = rows
       .filter(row => row['Title'] && row['URL'])
       .map(row => ({
         id: parseInt(row['ID'] || '0', 10) || 0,
@@ -389,13 +389,18 @@ async function main() {
         leetcode_url: row['URL'] || '',
       }))
       // Dedupe by problem ID (keep highest frequency)
-      .reduce((acc, q) => {
-        const existing = acc.find(x => x.id === q.id);
-        if (!existing || q.frequency > existing.frequency) {
-          return acc.filter(x => x.id !== q.id).concat(q);
+      .reduce((map, q) => {
+        const existing = map.get(q.id);
+        if (!existing) {
+          map.set(q.id, q);
+        } else if (q.frequency > existing.frequency) {
+          map.delete(q.id);
+          map.set(q.id, q);
         }
-        return acc;
-      }, [])
+        return map;
+      }, new Map());
+
+    const questions = Array.from(questionMap.values())
       // Sort by frequency desc
       .sort((a, b) => b.frequency - a.frequency);
     
