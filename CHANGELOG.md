@@ -14,12 +14,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
-## [2026-10-30]
-
-### Fixed
-
-- Stabilise the `ProblemPanel` `onClose` callback in `GlobalSurpriseMe` by replacing the inline arrow function with a `useCallback` hook to prevent unnecessary re-renders.
-
 ## [2026-10-29]
 
 ### Changed

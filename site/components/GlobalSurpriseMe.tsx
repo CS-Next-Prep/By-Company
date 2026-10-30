@@ -63,8 +63,6 @@ export default function GlobalSurpriseMe() {
     }
   }, []);
 
-  const handlePanelClose = useCallback(() => setActive(null), []);
-
   const questionTopics = active ? getQuestionTopics(active.title) : [];
   const maxFrequency = active ? 100 : 1;
 
@@ -96,7 +94,7 @@ export default function GlobalSurpriseMe() {
           maxFreq={maxFrequency}
           leetcodeUrl={active.leetcode_url}
           topics={questionTopics}
-          onClose={handlePanelClose}
+          onClose={() => setActive(null)}
         />,
         document.body,
       )}
