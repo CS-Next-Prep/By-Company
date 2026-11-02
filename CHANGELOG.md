@@ -14,6 +14,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [2026-11-02]
+
+### Added
+
+- Add `pr-description-check.yml` GitHub Actions workflow to automatically validate PR descriptions on every pull request: checks that the Summary section is non-empty (using `PR_SUMMARY_START`/`PR_SUMMARY_END` markers), at least one Type of Change checkbox is selected, the three mandatory How it was checked items are ticked, and all contributor checklist items are checked — failures apply labels (`incomplete-pr-description`, `needs-changelog`) and post a comment explaining what to fix ([#37](https://github.com/CS-Next-Prep/By-Company/issues/37)) @varma1221.
+- Add CHANGELOG validation to the same workflow: checks that `CHANGELOG.md` was modified, a `## [YYYY-MM-DD]` section was added, a valid sub-heading (`### Added/Changed/Fixed/Removed`) is present, and at least one bullet entry exists ([#37](https://github.com/CS-Next-Prep/By-Company/issues/37)) @varma1221.
+
+### Changed
+
+- Restructure `.github/PULL_REQUEST_TEMPLATE.md`: replace freeform placeholder lines in the Summary section with `<!-- PR_SUMMARY_START -->`/`<!-- PR_SUMMARY_END -->` markers for machine-readable validation; add top-level warning banner instructing contributors not to modify the template structure; add a friendly note above the contributor checklist ([#37](https://github.com/CS-Next-Prep/By-Company/issues/37)) @varma1221.
+
 ## [2026-10-30]
 
 ### Fixed

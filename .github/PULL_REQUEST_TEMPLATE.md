@@ -1,8 +1,14 @@
+<!--
+YOU MUST FILL OUT THIS ENTIRE TEMPLATE FOR YOUR PR TO BE APPROVED.
+
+Do not remove or modify this template structure (including these comment markers) — your PR will fail automated validation if you do.
+-->
+
 ## Summary
 
-< One or two sentences describing what this pull request does and why. >
+<!-- PR_SUMMARY_START -->
 
-< Please also include relevant motivation and context. >
+<!-- PR_SUMMARY_END -->
 
 ## Issue Link
 
@@ -38,6 +44,8 @@
 ---
 
 ## Checklist — before requesting review
+
+<!-- Please tick every item below honestly — these help keep the project healthy and make the review process smoother for everyone. -->
 
 **Scope and content**
 - [ ] This pull request has a single, coherent purpose.

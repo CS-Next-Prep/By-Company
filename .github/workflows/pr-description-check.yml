@@ -1,0 +1,251 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+# Job 1 — Validate the PR description fields
+jobs:
+  check-pr-description:
+    name: Validate PR Description
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+
+    steps:
+      - name: Validate description fields
+        id: validate
+        continue-on-error: true
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python3 << 'PYEOF'
+          import os, sys, re
+
+          body = os.environ.get('PR_BODY', '') or ''
+          errors = []
+
+          # ── 1. Summary must be non-empty between marker comments ──────────
+          summary_match = re.search(
+              r'<!--\s*PR_SUMMARY_START\s*-->(.*?)<!--\s*PR_SUMMARY_END\s*-->',
+              body, re.DOTALL | re.IGNORECASE
+          )
+          if not summary_match or not summary_match.group(1).strip():
+              errors.append('SUMMARY_EMPTY: The Summary section (between PR_SUMMARY_START and PR_SUMMARY_END) is empty.')
+
+          # ── 2. Type of Change — at least one checkbox ticked ──────────────
+          type_match = re.search(r'##\s+Type of change(.*?)---', body, re.DOTALL | re.IGNORECASE)
+          if type_match:
+              type_section = type_match.group(1)
+              if not re.search(r'-\s*\[[xX]\]', type_section):
+                  errors.append('NO_TYPE_SELECTED: No checkbox is ticked under "Type of change". Please select at least one.')
+          else:
+              errors.append('MISSING_SECTION: The "Type of change" section is missing or was removed.')
+
+          # ── 3. First 3 "How it was checked" items must all be ticked ──────
+          # Items: lint, build, local dev review
+          check_match = re.search(r'##\s+How it was checked(.*?)---', body, re.DOTALL | re.IGNORECASE)
+          if check_match:
+              check_section = check_match.group(1)
+              checkboxes = re.findall(r'-\s*\[([ xX])\]', check_section)
+              first_three = checkboxes[:3]
+              if len(first_three) < 3:
+                  errors.append('MANDATORY_CHECKS_MISSING: Fewer than 3 checkboxes found under "How it was checked". Do not remove items from this section.')
+              elif any(c.strip() == '' for c in first_three):
+                  missing = [i+1 for i, c in enumerate(first_three) if c.strip() == '']
+                  errors.append(f'MANDATORY_CHECKS_INCOMPLETE: Items {missing} under "How it was checked" are required (lint, build, local review) but not ticked.')
+          else:
+              errors.append('MISSING_SECTION: The "How it was checked" section is missing or was removed.')
+
+          # ── 4. Contributor checklist — every item must be ticked ──────────
+          contrib_match = re.search(
+              r'##\s+Checklist\s*[—\-]+\s*before requesting review(.*?)##\s+Checklist\s*[—\-]+\s*for maintainers',
+              body, re.DOTALL | re.IGNORECASE
+          )
+          if contrib_match:
+              contrib_section = contrib_match.group(1)
+              unchecked = re.findall(r'-\s*\[\s*\]', contrib_section)
+              if unchecked:
+                  errors.append(f'CHECKLIST_INCOMPLETE: {len(unchecked)} item(s) in "Checklist — before requesting review" are not ticked. All items must be checked before requesting review.')
+          else:
+              errors.append('MISSING_SECTION: The "Checklist — before requesting review" section is missing or was removed.')
+
+          # ── Report ────────────────────────────────────────────────────────
+          if errors:
+              print('::error::PR description validation failed:')
+              for e in errors:
+                  print(f'::error::  • {e}')
+              # Write errors to a file so the next step can read them
+              with open('/tmp/pr_errors.txt', 'w') as f:
+                  f.write('\n'.join(errors))
+              sys.exit(1)
+          else:
+              print('::notice::PR description validation passed.')
+              open('/tmp/pr_errors.txt', 'w').close()
+              sys.exit(0)
+          PYEOF
+
+      - name: Post failure comment and apply label
+        if: steps.validate.outcome == 'failure'
+        run: |
+          ERRORS=$(cat /tmp/pr_errors.txt 2>/dev/null || echo 'Unknown validation error.')
+
+          COMMENT="## PR Description Validation Failed
+
+          Your pull request description is missing required information. Please update it so that it passes the checks below.
+
+          **Issues found:**
+          $(echo "$ERRORS" | sed 's/^/- /')
+
+          **What to fix:**
+          - Fill in the **Summary** section between the \`<!-- PR_SUMMARY_START -->\` and \`<!-- PR_SUMMARY_END -->\` comment markers.
+          - Tick **at least one** checkbox under **Type of change**.
+          - Tick **all three** mandatory items under **How it was checked** (lint, build, local dev review).
+          - Tick **every** item under **Checklist — before requesting review**.
+
+          > Do not remove or modify the template structure or comment markers — this will also cause the check to fail.
+
+          Once you've updated the description, this check will re-run automatically."
+
+          gh pr comment "$PR_NUMBER" \
+            --body "$COMMENT" \
+            --repo "$REPO"
+
+          gh pr edit "$PR_NUMBER" \
+            --add-label "incomplete-pr-description" \
+            --repo "$REPO" 2>/dev/null || true
+
+      - name: Remove failure label on success
+        if: steps.validate.outcome == 'success'
+        run: |
+          gh pr edit "$PR_NUMBER" \
+            --remove-label "incomplete-pr-description" \
+            --repo "$REPO" 2>/dev/null || true
+
+      - name: Fail the job if validation failed
+        if: steps.validate.outcome == 'failure'
+        run: exit 1
+
+  # Job 2 — Validate the CHANGELOG.md entry
+  check-changelog:
+    name: Validate CHANGELOG Entry
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REPO: ${{ github.repository }}
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: git fetch origin "$BASE_REF"
+
+      - name: Validate CHANGELOG entry
+        id: changelog
+        continue-on-error: true
+        run: |
+          python3 << 'PYEOF'
+          import subprocess, sys, re, os
+
+          # Get the diff of CHANGELOG.md between base branch and HEAD
+          result = subprocess.run(
+              ['git', 'diff', f'origin/{os.environ["BASE_REF"]}...HEAD', '--', 'CHANGELOG.md'],
+              capture_output=True, text=True
+          )
+          diff = result.stdout
+          errors = []
+
+          # ── 1. File must have been modified ───────────────────────────────
+          if not diff.strip():
+              errors.append('CHANGELOG_NOT_UPDATED: CHANGELOG.md was not modified in this PR. Every PR must include a CHANGELOG entry.')
+          else:
+              # Collect only added lines (lines starting with + but not the diff header +++)
+              added_lines = [
+                  line[1:] for line in diff.splitlines()
+                  if line.startswith('+') and not line.startswith('+++')
+              ]
+              added_text = '\n'.join(added_lines)
+
+              # ── 2. A new date-stamped section must be added ───────────────
+              date_pattern = re.compile(r'^##\s+\[\d{4}-\d{2}-\d{2}\]', re.MULTILINE)
+              if not date_pattern.search(added_text):
+                  errors.append('CHANGELOG_NO_DATE_SECTION: No new date-stamped section (## [YYYY-MM-DD]) was found in the added lines. Add an entry under the correct date.')
+
+              # ── 3. A valid sub-heading must be present ────────────────────
+              sub_heading_pattern = re.compile(r'^###\s+(Added|Changed|Fixed|Removed)\s*$', re.MULTILINE)
+              if not sub_heading_pattern.search(added_text):
+                  errors.append('CHANGELOG_NO_SUBHEADING: No valid sub-heading (### Added, ### Changed, ### Fixed, or ### Removed) was found in the added lines.')
+
+              # ── 4. At least one bullet entry must be present ──────────────
+              bullet_pattern = re.compile(r'^-\s+\S', re.MULTILINE)
+              if not bullet_pattern.search(added_text):
+                  errors.append('CHANGELOG_NO_ENTRY: No bullet entry (starting with "- ") was found in the added lines. Add a description of what changed.')
+
+          if errors:
+              print('::error::CHANGELOG validation failed:')
+              for e in errors:
+                  print(f'::error::  • {e}')
+              with open('/tmp/changelog_errors.txt', 'w') as f:
+                  f.write('\n'.join(errors))
+              sys.exit(1)
+          else:
+              print('::notice::CHANGELOG validation passed.')
+              open('/tmp/changelog_errors.txt', 'w').close()
+              sys.exit(0)
+          PYEOF
+
+      - name: Post failure comment and apply label
+        if: steps.changelog.outcome == 'failure'
+        run: |
+          ERRORS=$(cat /tmp/changelog_errors.txt 2>/dev/null || echo 'Unknown CHANGELOG error.')
+
+          COMMENT="## CHANGELOG Validation Failed
+
+          Your pull request is missing a valid \`CHANGELOG.md\` entry, or the entry does not follow the expected format.
+
+          **Issues found:**
+          $(echo "$ERRORS" | sed 's/^/- /')
+
+          **Expected CHANGELOG format:**
+          \`\`\`markdown
+          ## [YYYY-MM-DD]
+
+          ### Added|Changed|Fixed|Removed
+
+          - Brief description of what changed ([#PR](link)) @your-handle.
+          \`\`\`
+
+          Please update \`CHANGELOG.md\` following the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) convention used by this project. Every PR must include an entry — even small changes.
+
+          Once you've updated \`CHANGELOG.md\`, this check will re-run automatically."
+
+          gh pr comment "$PR_NUMBER" \
+            --body "$COMMENT" \
+            --repo "$REPO"
+
+          gh pr edit "$PR_NUMBER" \
+            --add-label "needs-changelog" \
+            --repo "$REPO" 2>/dev/null || true
+
+      - name: Remove failure label on success
+        if: steps.changelog.outcome == 'success'
+        run: |
+          gh pr edit "$PR_NUMBER" \
+            --remove-label "needs-changelog" \
+            --repo "$REPO" 2>/dev/null || true
+
+      - name: Fail the job if validation failed
+        if: steps.changelog.outcome == 'failure'
+        run: exit 1
