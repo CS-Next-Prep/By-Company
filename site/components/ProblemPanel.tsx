@@ -33,12 +33,20 @@ interface ProblemPanelProps {
   onClose: () => void;
 }
 
-// Module-level cache — loaded once per session, never re-fetched
+// Module-level cache — loaded once per session, retried if a request fails
 let indexCache: Promise<{ questions: { id: number; companies: Company[] }[] }> | null = null;
 
 function getQuestionsIndex() {
   if (!indexCache) {
-    indexCache = fetch('/data/questions-index.json').then(r => r.json());
+    indexCache = fetch('/data/questions-index.json')
+      .then(response => {
+        if (!response.ok) throw new Error(`Questions index request failed: ${response.status}`);
+        return response.json() as Promise<{ questions: { id: number; companies: Company[] }[] }>;
+      })
+      .catch(error => {
+        indexCache = null;
+        throw error;
+      });
   }
   return indexCache;
 }
