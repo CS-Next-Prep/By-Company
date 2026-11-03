@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [2026-11-03]
+
+### Fixed
+
+- Prevent permanent failure state when loading `questions-index.json` in `ProblemPanel` and `SiteHeader`: validate `response.ok`, clear the module-level cache on error to allow retrying on subsequent user interactions, and enable offline company search in `SiteHeader` @vamsikrishna51829.
+
 ## [2026-11-02]
 
 ### Added

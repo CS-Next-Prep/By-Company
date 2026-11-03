@@ -35,14 +35,14 @@ const MAX_COMPANY_RESULTS = 5;
 const MAX_QUESTION_RESULTS = 5;
 const MAX_COMPANIES_SHOWN_PER_Q = 3;
 
-// Module-level cache so questions index is downloaded at most once per session
+// Module-level cache so questions index is downloaded at most once per session (retried on failure)
 let questionsCache: Promise<QuestionIndex[]> | null = null;
 
 function fetchQuestionsIndex(): Promise<QuestionIndex[]> {
   if (!questionsCache) {
     questionsCache = fetch('/data/questions-index.json')
       .then(res => {
-        if (!res.ok) throw new Error('Failed to load questions-index.json');
+        if (!res.ok) throw new Error(`Failed to load questions-index.json: ${res.status}`);
         return res.json();
       })
       .then(data => {
@@ -62,8 +62,8 @@ function fetchQuestionsIndex(): Promise<QuestionIndex[]> {
         }));
       })
       .catch(err => {
-        console.error('[SiteHeader] Error loading questions index:', err);
-        return [];
+        questionsCache = null;
+        throw err;
       });
   }
   return questionsCache;
@@ -80,7 +80,6 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
 
   const companyFuseRef = useRef<unknown>(null);
   const questionFuseRef = useRef<unknown>(null);
-  const fuseLoaded = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -90,31 +89,36 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
   const totalResults = companyResults.length + questionResults.length;
 
   const loadFuse = useCallback(async () => {
-    if (fuseLoaded.current) return;
-    const [FuseModule, questionItems] = await Promise.all([
-      import('fuse.js'),
-      fetchQuestionsIndex(),
-    ]);
-    const Fuse = FuseModule.default;
-    companyFuseRef.current = new Fuse(companies, {
-      keys: ['displayName', 'slug'],
-      threshold: 0.35,
-      includeScore: true,
-      ignoreLocation: true,
-    });
-    questionFuseRef.current = new Fuse(questionItems, {
-      keys: ['title'],
-      threshold: 0.35,
-      includeScore: true,
-      ignoreLocation: true,
-    });
-    fuseLoaded.current = true;
-    setReady(true);
+    if (companyFuseRef.current && questionFuseRef.current) return;
+    try {
+      const FuseModule = await import('fuse.js');
+      const Fuse = FuseModule.default;
+      if (!companyFuseRef.current) {
+        companyFuseRef.current = new Fuse(companies, {
+          keys: ['displayName', 'slug'],
+          threshold: 0.35,
+          includeScore: true,
+          ignoreLocation: true,
+        });
+        setReady(true);
+      }
+      if (!questionFuseRef.current) {
+        const questionItems = await fetchQuestionsIndex();
+        questionFuseRef.current = new Fuse(questionItems, {
+          keys: ['title'],
+          threshold: 0.35,
+          includeScore: true,
+          ignoreLocation: true,
+        });
+      }
+    } catch (err) {
+      console.error('[SiteHeader] Error loading questions index:', err);
+    }
   }, [companies]);
 
   const search = useCallback((value: string) => {
     const q = value.trim();
-    if (!q || !companyFuseRef.current || !questionFuseRef.current) {
+    if (!q || !companyFuseRef.current) {
       setCompanyResults([]);
       setQuestionResults([]);
       setIsOpen(false);
@@ -124,9 +128,12 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cRes = (companyFuseRef.current as any).search(q).slice(0, MAX_COMPANY_RESULTS)
       .map((r: { item: CompanyIndex }) => r.item);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const qRes = (questionFuseRef.current as any).search(q).slice(0, MAX_QUESTION_RESULTS)
-      .map((r: { item: QuestionIndex }) => r.item);
+    let qRes: QuestionIndex[] = [];
+    if (questionFuseRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      qRes = (questionFuseRef.current as any).search(q).slice(0, MAX_QUESTION_RESULTS)
+        .map((r: { item: QuestionIndex }) => r.item);
+    }
 
     setCompanyResults(cRes);
     setQuestionResults(qRes);
@@ -235,7 +242,15 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
             aria-controls="search-results"
             aria-activedescendant={activeDescendantId}
             role="combobox"
-            onChange={e => { setQuery(e.target.value); search(e.target.value); }}
+            onChange={e => {
+              setQuery(e.target.value);
+              search(e.target.value);
+              if (!questionFuseRef.current) {
+                loadFuse().then(() => {
+                  if (inputRef.current) search(inputRef.current.value);
+                });
+              }
+            }}
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
           />
