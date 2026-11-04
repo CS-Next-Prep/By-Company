@@ -16,15 +16,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import type Fuse from 'fuse.js';
 import CompanyLogo from './CompanyLogo';
 import DifficultyBadge from './DifficultyBadge';
-import type { QuestionIndex } from '@/lib/types';
+import type { CompanyIndex, QuestionIndex } from '@/lib/types';
 
-interface CompanyIndex {
+interface RawQuestionCompany {
   slug: string;
   displayName: string;
-  logo: string | null;
-  questionCount: number;
+  logo?: string | null;
+  frequency?: number;
+}
+
+interface RawQuestionItem {
+  id: number;
+  title: string;
+  difficulty?: 'Easy' | 'Medium' | 'Hard' | 'Unknown';
+  companies?: RawQuestionCompany[];
 }
 
 interface SiteHeaderProps {
@@ -43,17 +51,15 @@ function fetchQuestionsIndex(): Promise<QuestionIndex[]> {
     questionsCache = fetch('/data/questions-index.json')
       .then(res => {
         if (!res.ok) throw new Error(`Failed to load questions-index.json: ${res.status}`);
-        return res.json();
+        return res.json() as Promise<{ questions?: RawQuestionItem[] }>;
       })
       .then(data => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (data.questions || []).map((q: any) => ({
+        return (data.questions || []).map(q => ({
           id: q.id,
           title: q.title,
           difficulty: q.difficulty || 'Unknown',
           companyCount: q.companies?.length || 0,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          companies: (q.companies || []).slice(0, 3).map((c: any) => ({
+          companies: (q.companies || []).slice(0, 3).map(c => ({
             slug: c.slug,
             displayName: c.displayName,
             logo: c.logo || null,
@@ -78,8 +84,9 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
   const [ready, setReady] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  const companyFuseRef = useRef<unknown>(null);
-  const questionFuseRef = useRef<unknown>(null);
+  const companyFuseRef = useRef<Fuse<CompanyIndex> | null>(null);
+  const questionFuseRef = useRef<Fuse<QuestionIndex> | null>(null);
+  const loadingFusePromiseRef = useRef<Promise<void> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -90,30 +97,39 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
 
   const loadFuse = useCallback(async () => {
     if (companyFuseRef.current && questionFuseRef.current) return;
-    try {
-      const FuseModule = await import('fuse.js');
-      const Fuse = FuseModule.default;
-      if (!companyFuseRef.current) {
-        companyFuseRef.current = new Fuse(companies, {
-          keys: ['displayName', 'slug'],
-          threshold: 0.35,
-          includeScore: true,
-          ignoreLocation: true,
-        });
-        setReady(true);
+    if (loadingFusePromiseRef.current) return loadingFusePromiseRef.current;
+
+    const promise = (async () => {
+      try {
+        const FuseModule = await import('fuse.js');
+        const Fuse = FuseModule.default;
+        if (!companyFuseRef.current) {
+          companyFuseRef.current = new Fuse(companies, {
+            keys: ['displayName', 'slug'],
+            threshold: 0.35,
+            includeScore: true,
+            ignoreLocation: true,
+          });
+          setReady(true);
+        }
+        if (!questionFuseRef.current) {
+          const questionItems = await fetchQuestionsIndex();
+          questionFuseRef.current = new Fuse(questionItems, {
+            keys: ['title'],
+            threshold: 0.35,
+            includeScore: true,
+            ignoreLocation: true,
+          });
+        }
+      } catch (err) {
+        console.error('[SiteHeader] Error loading questions index:', err);
+      } finally {
+        loadingFusePromiseRef.current = null;
       }
-      if (!questionFuseRef.current) {
-        const questionItems = await fetchQuestionsIndex();
-        questionFuseRef.current = new Fuse(questionItems, {
-          keys: ['title'],
-          threshold: 0.35,
-          includeScore: true,
-          ignoreLocation: true,
-        });
-      }
-    } catch (err) {
-      console.error('[SiteHeader] Error loading questions index:', err);
-    }
+    })();
+
+    loadingFusePromiseRef.current = promise;
+    return promise;
   }, [companies]);
 
   const search = useCallback((value: string) => {
@@ -125,14 +141,12 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
       setSelectedIndex(-1);
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cRes = (companyFuseRef.current as any).search(q).slice(0, MAX_COMPANY_RESULTS)
-      .map((r: { item: CompanyIndex }) => r.item);
+    const cRes = companyFuseRef.current.search(q).slice(0, MAX_COMPANY_RESULTS)
+      .map(r => r.item);
     let qRes: QuestionIndex[] = [];
     if (questionFuseRef.current) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      qRes = (questionFuseRef.current as any).search(q).slice(0, MAX_QUESTION_RESULTS)
-        .map((r: { item: QuestionIndex }) => r.item);
+      qRes = questionFuseRef.current.search(q).slice(0, MAX_QUESTION_RESULTS)
+        .map(r => r.item);
     }
 
     setCompanyResults(cRes);
@@ -252,6 +266,13 @@ export default function SiteHeader({ companies }: SiteHeaderProps) {
               }
             }}
             onFocus={handleFocus}
+            onClick={() => {
+              if (!questionFuseRef.current && isFocused) {
+                loadFuse().then(() => {
+                  if (inputRef.current) search(inputRef.current.value);
+                });
+              }
+            }}
             onKeyDown={handleKeyDown}
           />
 

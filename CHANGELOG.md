@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+## [2026-11-04]
+
+### Fixed
+
+- Prevent permanent failure state when loading `questions-index.json` in `SiteHeader`: reset `questionsCache` on network/HTTP failure to allow re-fetching on subsequent user interactions, deduplicate in-flight search index initialization, and import shared types ([#40](https://github.com/CS-Next-Prep/By-Company/issues/40)) @Mohan0037.
+
 ## [2026-11-03]
 
 ### Fixed
